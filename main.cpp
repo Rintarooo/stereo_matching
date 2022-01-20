@@ -91,10 +91,15 @@ int main (int argc, char* argv[])
 		std::cerr << "failed to load image. check path: " << imgr_path << std::endl;
 		return 1;
 	}
+	cv::resize(srcl, srcl, cv::Size(width, height));            
+	cv::resize(srcr, srcr, cv::Size(width, height));            
 	cvtColor(srcl,srcl,CV_BGR2GRAY);
 	cvtColor(srcr,srcr,CV_BGR2GRAY); 
+	cv::imwrite("srcl.png", srcl);
+	cv::imwrite("srcr.png", srcr);
 
-/*// stereo rectification
+
+// stereo rectification
 	const std::string filename = "fountain/p11.txt";
 	std::vector<std::string> vec_imgname;
 	std::vector<cv::Mat> vec_R, vec_t;
@@ -131,6 +136,7 @@ int main (int argc, char* argv[])
 		Tmr.at<float>(2,0), Tmr.at<float>(2,1), Tmr.at<float>(2,2));
 	t_relative = (cv::Mat_<float>(3,1) <<
 				   Tmr.at<float>(0,3), Tmr.at<float>(1,3), Tmr.at<float>(2,3));
+	
 	R_relative.convertTo(R_relative, CV_64F);
 	t_relative.convertTo(t_relative, CV_64F);
 
@@ -148,26 +154,26 @@ int main (int argc, char* argv[])
 	cv::remap(srcr, srcr_rec, right_map1, right_map2, cv::INTER_LINEAR);
 	cv::imwrite("srcl_rec.png", srcl_rec);
 	cv::imwrite("srcr_rec.png", srcr_rec);
-*/// stereo rectification
+// stereo rectification
 
-	int ndisparities = 16*5;   /**< Range of disparity */
+	int ndisparities = 16*5;   /*< Range of disparity >*/
 	int SADWindowSize = 7; /**< Size of the block window. Must be odd */
-	// cv::Ptr<cv::StereoBM> sbm = cv::StereoBM::create(ndisparities, SADWindowSize);
-	cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,    //int minDisparity
-                                    96,     //int numDisparities
-                                    5,      //int SADWindowSize
-                                    600,    //int P1 = 0
-                                    2400,   //int P2 = 0
-                                    10,     //int disp12MaxDiff = 0
-                                    16,     //int preFilterCap = 0
-                                    2,      //int uniquenessRatio = 0
-                                    20,    //int speckleWindowSize = 0
-                                    30,     //int speckleRange = 0
-                                    true);  //bool fullDP = false
+	cv::Ptr<cv::StereoBM> sbm = cv::StereoBM::create(ndisparities, SADWindowSize);
+	// cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,    //int minDisparity
+ //                                    96,     //int numDisparities
+ //                                    5,      //int SADWindowSize
+ //                                    600,    //int P1 = 0
+ //                                    2400,   //int P2 = 0
+ //                                    10,     //int disp12MaxDiff = 0
+ //                                    16,     //int preFilterCap = 0
+ //                                    2,      //int uniquenessRatio = 0
+ //                                    20,    //int speckleWindowSize = 0
+ //                                    30,     //int speckleRange = 0
+ //                                    true);  //bool fullDP = false
 	cv::Mat dispbm;
-	// sbm->compute(srcl_rec, srcr_rec, dispbm);
+	sbm->compute(srcl_rec, srcr_rec, dispbm);
 	// sbm->compute(srcl, srcr, dispbm);
-	sgbm->compute(srcl, srcr, dispbm);
+	// sgbm->compute(srcl, srcr, dispbm);
 	double minVal, maxVal;
 	// double max_dist = 0;
 	// double min_dist = 100;

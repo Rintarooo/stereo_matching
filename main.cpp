@@ -130,25 +130,31 @@ int main (int argc, char* argv[])
 	Tmr = Tmw * Twr;// Tmr = Tmw * Trw.inv();
 	
 	cv::Mat R_relative, t_relative;
+	// rotation from the left to the right camera
 	R_relative = (cv::Mat_<float>(3,3) <<
 		Tmr.at<float>(0,0), Tmr.at<float>(0,1), Tmr.at<float>(0,2),
 		Tmr.at<float>(1,0), Tmr.at<float>(1,1), Tmr.at<float>(1,2),
 		Tmr.at<float>(2,0), Tmr.at<float>(2,1), Tmr.at<float>(2,2));
+	// translation from the left to the right camera
 	t_relative = (cv::Mat_<float>(3,1) <<
 				   Tmr.at<float>(0,3), Tmr.at<float>(1,3), Tmr.at<float>(2,3));
 	
-	R_relative.convertTo(R_relative, CV_64F);
+	R_relative.convertTo(R_relative, CV_64F);// float -> double
 	t_relative.convertTo(t_relative, CV_64F);
 
 	cv::Mat D1, D2;// distortion
+	D1 = cv::Mat_<double>::zeros(1,5);
+	D2 = cv::Mat_<double>::zeros(1,5);
 	cv::Mat R1, R2, P1, P2, Q;
 	// 平行化後のパラメータ(R1,R2,P1,P2,Q)やら計算
 	cv::stereoRectify(K_,D1,K_,D2, srcl.size(), R_relative, t_relative, R1, R2, P1, P2, Q);
 	cv::Mat K1_new, K2_new;
 	cv::Mat left_map1, left_map2, right_map1, right_map2;
 	// 平行化のための画素対応を求める
-	cv::initUndistortRectifyMap(K_, D1, R1, K1_new, srcl.size(),CV_32FC1, left_map1, left_map2);
-	cv::initUndistortRectifyMap(K_, D2, R2, K2_new, srcr.size(),CV_32FC1, right_map1, right_map2);
+	// cv::initUndistortRectifyMap(K_, D1, R1, K1_new, srcl.size(),CV_32FC1, left_map1, left_map2);
+	// cv::initUndistortRectifyMap(K_, D2, R2, K2_new, srcr.size(),CV_32FC1, right_map1, right_map2);
+	cv::initUndistortRectifyMap(K_, D1, R1, P1, srcl.size(),CV_32FC1, left_map1, left_map2);
+	cv::initUndistortRectifyMap(K_, D2, R2, P2, srcr.size(),CV_32FC1, right_map1, right_map2);
 	cv::Mat srcl_rec, srcr_rec;
 	cv::remap(srcl, srcl_rec, left_map1, left_map2, cv::INTER_LINEAR);
 	cv::remap(srcr, srcr_rec, right_map1, right_map2, cv::INTER_LINEAR);
